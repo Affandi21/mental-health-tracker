@@ -6,11 +6,12 @@ import datetime
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.core import serializers
-from django.shortcuts import render, redirect   # Tambahkan import redirect di baris ini
+from django.shortcuts import render, redirect , reverse  # Tambahkan import redirect di baris ini
 from main.forms import MoodEntryForm
 from main.models import MoodEntry
+
 # Create your views here.
 
 @login_required(login_url='/login')
@@ -25,6 +26,29 @@ def show_main(request):
     }
 
     return render(request, "main.html", context)
+
+def edit_mood(request, id):
+    # Get mood entry berdasarkan id
+    mood = MoodEntry.objects.get(pk = id)
+
+    # Set mood entry sebagai instance dari form
+    form = MoodEntryForm(request.POST or None, instance=mood)
+
+    if form.is_valid() and request.method == "POST":
+        # Simpan form dan kembali ke halaman awal
+        form.save()
+        return HttpResponseRedirect(reverse('main:show_main'))
+
+    context = {'form': form}
+    return render(request, "edit_mood.html", context)
+
+def delete_mood(request, id):
+    # Get mood berdasarkan id
+    mood = MoodEntry.objects.get(pk = id)
+    # Hapus mood
+    mood.delete()
+    # Kembali ke halaman awal
+    return HttpResponseRedirect(reverse('main:show_main'))
 
 def register(request):
     form = UserCreationForm()
